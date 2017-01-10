@@ -1,4 +1,5 @@
-# include "matrix.h"
+# include <time.h>
+# include "AI.h"
 
 
 int testpath(struct matrix *mat, struct matrix *cell, int i, 
@@ -42,7 +43,84 @@ int is_Finished(struct matrix *mat, struct matrix *cell,
   return 0;
 }
 
-int game(int lines, int cols)
+double MonteCarlo(struct matrix *mat, struct matrix *Cell,
+                  int cpt, int currentVisit, int player, double max_game)
+{
+  double game_win = 0;
+
+  for(int i = 0; i < max_game; ++i)
+  {
+    struct vector *freePos = getFreePos(mat, cpt);
+    struct matrix *cell = cloneMat(Cell);
+    int curr = currentVisit;
+
+    while(freePos->size > 0)
+    {
+      if(player == 3)
+        player = 1;
+
+      srand(time(NULL));
+      int r = rand() % cpt;
+      mat->data[freePos->data[r]->t1 * mat->cols + freePos->data[r]->t2] = player;
+      ++curr;
+      if(is_Finished(mat, cell, curr, player))
+      {
+        if(player == 2)
+          ++game_win;
+        else
+          freePos->size = 0;
+      }
+      ++player;
+      vector_extract_at(freePos, r);
+    }
+    freeVect(freePos);
+    freeMat(cell);
+  }
+  return game_win / max_game;
+}
+
+void treeScore(struct tree *tree, struct matrix *mat, struct matrix *Cell, 
+int currentVisit, int player, int cpt, int max_game, int depth, int max_depth)
+{
+  if(depth >= max_depth)
+  {
+    tree->nbChildren = 0;
+    tree->value = MonteCarlo(mat, Cell, cpt, currentVisit, player, 
+    return;
+  }
+
+  if(player == 3)
+    player = 1;
+
+   struct vector *freePos = getFreePos(mat, cpt);
+
+   addChildren(tree, freePos);
+
+   for(int i = 0; i < tree->nbChildren; ++i)
+   {
+     struct matrix *clone = cloneMat(mat);
+     struct matrix *cell = cloneMat(Cell);
+
+     clone->data[tree->children[i]->t1 * clone->cols + tree->children[i]->t2] = player;
+     if( is_Finished(mat, cell, currentVisit, player) )
+     {
+       if(player == 1)
+         tree->children[i]->value = -1;
+       else
+         tree->children[i]->value = 1;
+       tree->children[i]->nbChildren = 0;
+     }
+     else
+     {
+       treeScore(tree->children[i], clone, cell, currentVisit + 1, player,
+                 cpt, depth, max_depth);
+     }
+     freeMat(clone);
+   }
+  freeVect(freePos);
+}
+
+int game(int lines, int cols, int max_game)
 {
   int player = 0, valid = 0, win = 0, currentVisit = 0;
   struct matrix *mat = malloc(sizeof(struct matrix));
@@ -98,7 +176,8 @@ int game(int lines, int cols)
 int main()
 {
   int lines = 4, cols = lines;
-  int win = game(lines, cols);
+  int max_game = 200;
+  int win = game(lines, cols, max_game);
   if(win == 0)
     printf("FAIL CODE \n");
   else

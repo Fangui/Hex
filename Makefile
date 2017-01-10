@@ -4,7 +4,7 @@ CFLAGS= -Wall -Wextra -std=c99 -g -o Hex
 LDFLAGS=
 LDLIBS=
  
-SRC= Hex.c matrix.c
+SRC= Hex.c matrix.c tree.c vector.c AI.c
 
 OBJ= ${SRC:.c=.o} 
 all: Hex
