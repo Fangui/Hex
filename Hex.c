@@ -5,10 +5,11 @@ int testpath(struct matrix *mat, struct matrix *cell, int i,
              int j, int currentVisit, int player)
 {
   if(i < 0 || j < 0 || i >= mat->cols || j >= mat->lines || player != 
-  mat->data[i * mat->cols + j] || cell->data[i * mat->cols + j] == currentVisit)
+  mat->data[j * mat->cols + i] || cell->data[j * mat->cols + i] == currentVisit)
     return 0;
+  cell->data[j * mat->cols + i] = currentVisit;
 
-  if((player == 1 && j == mat->cols - 1) || (player == 2 && i == mat->cols -1))
+  if((player == 1 && j == mat->lines - 1) || (player == 2 && i == mat->cols -1))
     return 1;
 
   return (testpath(mat, cell, i - 1, j, currentVisit, player) ||
@@ -16,24 +17,28 @@ int testpath(struct matrix *mat, struct matrix *cell, int i,
           testpath(mat, cell, i, j - 1, currentVisit, player) ||
           testpath(mat, cell, i, j + 1, currentVisit, player) ||
           testpath(mat, cell, i - 1, j + 1, currentVisit, player) ||
-          testpath(mat, cell, i + 1, i - 1, currentVisit, player));
+          testpath(mat, cell, i + 1, j - 1, currentVisit, player));
 }
 
-int is_Finished(struct matrix *mat, struct matrix *cell, int currentVisit)
+int is_Finished(struct matrix *mat, struct matrix *cell, 
+                int currentVisit, int player)
 {
   int i = 0;
-  while(i < mat->cols && testpath(mat, cell, i, 0, currentVisit, 1) == 0)
-    ++i;
-  if(i < mat->cols)
-    return 1;
-
-  int j = 0;
-  while(j < mat->lines && testpath(mat, cell, 0, j, currentVisit, 2) == 0)
-    ++j;
-
-  if(j < mat->lines)
-    return 2;
-
+  if(player == 1)
+  {
+    while(i < mat->cols && testpath(mat, cell, i, 0, currentVisit, 1) == 0)
+      ++i;
+    if(i < mat->cols)
+      return 1;
+  }
+  else
+  {
+    int j = 0;
+    while(j < mat->lines && testpath(mat, cell, 0, j, currentVisit, 2) == 0)
+      ++j;
+    if(j < mat->lines)
+      return 2;
+  }
   return 0;
 }
 
@@ -73,10 +78,9 @@ int game(int lines, int cols)
     if(valid)
     {
       mat->data[lines * mat->cols + cols] = player;
-      cell->data[lines * mat->cols + cols] = currentVisit;
       printf("\n");
       printMat(mat);
-      win = is_Finished(mat, cell, currentVisit);
+      win = is_Finished(mat, cell, currentVisit, player);
       if(win != 0)
       {
         freeMat(mat);
@@ -93,7 +97,7 @@ int game(int lines, int cols)
 
 int main()
 {
-  int lines = 2, cols = lines;
+  int lines = 4, cols = lines;
   int win = game(lines, cols);
   if(win == 0)
     printf("FAIL CODE \n");

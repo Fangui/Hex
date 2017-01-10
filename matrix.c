@@ -37,8 +37,10 @@ void printMat(struct matrix *mat)
         printf("| ");
       else if(mat->data[i * mat->cols + j] == 1)
         printf("|O");
-      else
+      else if(mat->data[i * mat->cols + j] == 2)
         printf("|X");
+      else
+        printf("|%d", mat->data[i * mat->cols + j]);
     }
     printf("|\n");
   }
