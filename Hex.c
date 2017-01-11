@@ -53,16 +53,16 @@ double MonteCarlo(struct matrix *mat, struct matrix *Cell,
     struct vector *freePos = getFreePos(mat, cpt);
     struct matrix *cell = cloneMat(Cell);
     int curr = currentVisit;
-
+    srand(time(NULL));
     while(freePos->size > 0)
     {
       if(player == 3)
         player = 1;
-
-      srand(time(NULL));
-      int r = rand() % cpt;
+  
+      int r = rand() % freePos->size;
+//      printf("r value :%d\n",r);
+//      print_vect(freePos);
       mat->data[freePos->data[r]->t1 * mat->cols + freePos->data[r]->t2] = player;
-      printf("r value :%d\n",r);
       ++curr;
       if(is_Finished(mat, cell, curr, player))
       {
@@ -128,7 +128,7 @@ int game(int lines, int cols, int max_game)
   printf("Player first?(1 or 2) : ");
   scanf("%d", &player);
 
-  int max_depth = 5; //
+  int max_depth = 3; //
 
   struct matrix *mat = malloc(sizeof(struct matrix));
   struct matrix *cell = malloc(sizeof(struct matrix));
