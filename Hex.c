@@ -62,6 +62,7 @@ double MonteCarlo(struct matrix *mat, struct matrix *Cell,
       srand(time(NULL));
       int r = rand() % cpt;
       mat->data[freePos->data[r]->t1 * mat->cols + freePos->data[r]->t2] = player;
+      printf("r value :%d\n",r);
       ++curr;
       if(is_Finished(mat, cell, curr, player))
       {
@@ -79,13 +80,13 @@ double MonteCarlo(struct matrix *mat, struct matrix *Cell,
   return game_win / max_game;
 }
 
-void treeScore(struct tree *tree, struct matrix *mat, struct matrix *Cell, 
-int currentVisit, int player, int cpt, int max_game, int depth, int max_depth)
+void treeScore(struct tree *tree, struct matrix *mat, struct matrix *Cell, int
+currentVisit, int player, int cpt, int max_game, int depth, int max_depth)
 {
   if(depth >= max_depth)
   {
     tree->nbChildren = 0;
-    tree->value = MonteCarlo(mat, Cell, cpt, currentVisit, player, 
+    tree->value = MonteCarlo(mat, Cell, cpt, currentVisit, player, max_game);
     return;
   }
 
@@ -112,9 +113,10 @@ int currentVisit, int player, int cpt, int max_game, int depth, int max_depth)
      }
      else
      {
-       treeScore(tree->children[i], clone, cell, currentVisit + 1, player,
-                 cpt, depth, max_depth);
+       treeScore(tree->children[i], clone, cell, currentVisit + 1, player + 1,
+                 cpt - 1, max_game, depth + 1, max_depth);
      }
+     freeMat(cell);
      freeMat(clone);
    }
   freeVect(freePos);
@@ -123,12 +125,29 @@ int currentVisit, int player, int cpt, int max_game, int depth, int max_depth)
 int game(int lines, int cols, int max_game)
 {
   int player = 0, valid = 0, win = 0, currentVisit = 0;
+  printf("Player first?(1 or 2) : ");
+  scanf("%d", &player);
+
+  int max_depth = 5; //
+
   struct matrix *mat = malloc(sizeof(struct matrix));
   struct matrix *cell = malloc(sizeof(struct matrix));
   mat = newMat(mat, lines, cols);
   cell = newMat(cell, lines, cols);
 
   int cpt = mat->lines * mat->cols;
+
+  if(player == 2)
+  {
+    --cpt;
+    ++currentVisit;
+    int mid = mat->lines / 2 * mat->cols + mat->cols / 2;
+    mat->data[mid] = 2;
+    cell->data[mid] = currentVisit;
+  }
+  else
+    player = 0;
+
   printMat(mat);
 
   for(; cpt > 0; --cpt)
@@ -139,32 +158,47 @@ int game(int lines, int cols, int max_game)
     if(player == 3)
       player = 1;
 
-    while(valid == 0)
+    if(player == 1)
     {
-      printf("lines : ");
-      scanf("%d", &lines);
-      printf("cols : ");
-      scanf("%d", &cols);
-      if(lines >= mat->lines || cols >= mat->cols)
-        printf("Position impossible\n");
-      else if (mat->data[lines * mat->cols + cols] != 0)
-        printf("Position occupé\n");
-      else
-        valid = 1;
+      while(valid == 0)
+      {
+        printf("lines : ");
+        scanf("%d", &lines);
+        printf("cols : ");
+        scanf("%d", &cols);
+        if(lines >= mat->lines || cols >= mat->cols)
+          printf("Position impossible\n");
+        else if (mat->data[lines * mat->cols + cols] != 0)
+          printf("Position occupé\n");
+        else
+          valid = 1;
+      }
+    }
+    else
+    {
+      struct tree *tree = malloc(sizeof(struct tree));
+      tree->value = 0;
+
+      treeScore(tree, mat, cell, currentVisit, player, cpt, max_game, 0, max_depth);
+
+      minimax(tree, 0, -150, 150);
+      struct tree *treePos = getTuple(tree);
+
+      lines = treePos->t1;
+      cols = treePos->t2;
+
+      freeTree(tree);
     }
 
-    if(valid)
+    mat->data[lines * mat->cols + cols] = player;
+    printf("\n");
+    printMat(mat);
+    win = is_Finished(mat, cell, currentVisit, player);
+    if(win != 0)
     {
-      mat->data[lines * mat->cols + cols] = player;
-      printf("\n");
-      printMat(mat);
-      win = is_Finished(mat, cell, currentVisit, player);
-      if(win != 0)
-      {
-        freeMat(mat);
-        freeMat(cell);
-        return player;
-      }
+      freeMat(mat);
+      freeMat(cell);
+      return player;
     }
   }
   freeMat(mat);
