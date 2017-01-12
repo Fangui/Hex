@@ -77,6 +77,7 @@ double MonteCarlo(struct matrix *mat, struct matrix *Cell,
     freeVect(freePos);
     freeMat(cell);
   }
+//  printf("gain = %lf\n", game_win / max_game);
   return game_win / max_game;
 }
 
@@ -94,6 +95,33 @@ currentVisit, int player, int cpt, int max_game, int depth, int max_depth)
     player = 1;
 
    struct vector *freePos = getFreePos(mat, cpt);
+
+   for(int i = 0; i < cpt; ++i)
+   {
+     struct matrix *clone = cloneMat(mat);
+     struct matrix *cell = cloneMat(Cell);
+     clone->data[freePos->data[i]->t1 *clone->cols + freePos->data[i]->t2] = player;
+     if( is_Finished(clone, cell, currentVisit, player) )
+     {
+       tree->nbChildren = 0;
+
+       if(player == 1)
+         tree->value = -1;
+       else
+         tree->value = 1;
+
+       tree->t1 = freePos->data[i]->t1;
+       tree->t2 = freePos->data[i]->t2;
+
+       freeMat(cell);
+       freeMat(clone);
+       freeVect(freePos);
+       return;
+     }
+
+     freeMat(cell);
+     freeMat(clone);
+   }
 
    addChildren(tree, freePos);
 
@@ -124,11 +152,16 @@ currentVisit, int player, int cpt, int max_game, int depth, int max_depth)
 
 int game(int lines, int cols, int max_game)
 {
-  int player = 0, valid = 0, win = 0, currentVisit = 0;
+  int player = 0, valid = 0, win = 0, currentVisit = 0, max_depth = 0;
   printf("Player first?(1 or 2) : ");
   scanf("%d", &player);
 
-  int max_depth = 3; //
+  printf("Coup prévu en avance :");
+  scanf("%d", &max_depth);
+  if(max_depth % 2 == 0)
+     --max_depth;
+  if(max_depth <= 0)
+    max_depth = 1;
 
   struct matrix *mat = malloc(sizeof(struct matrix));
   struct matrix *cell = malloc(sizeof(struct matrix));
@@ -183,6 +216,7 @@ int game(int lines, int cols, int max_game)
 
       minimax(tree, 0, -150, 150);
       struct tree *treePos = getTuple(tree);
+      printf("gain->%lf\n", tree->value);
 
       lines = treePos->t1;
       cols = treePos->t2;
@@ -209,8 +243,8 @@ int game(int lines, int cols, int max_game)
 
 int main()
 {
-  int lines = 4, cols = lines;
-  int max_game = 200;
+  int lines = 5, cols = lines;
+  int max_game = 300;
   int win = game(lines, cols, max_game);
   if(win == 0)
     printf("FAIL CODE \n");
