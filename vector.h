@@ -10,7 +10,8 @@ struct Tuple
 
 struct vector
 {
-  int capacity, size;
+  int size;
+  int capacity;
   struct Tuple **data;
 };
 

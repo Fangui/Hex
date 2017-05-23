@@ -2,10 +2,10 @@
 # include "AI.h"
 
 
-int testpath(struct matrix *mat, struct matrix *cell, int i, 
+int testpath(struct matrix *mat, struct matrix *cell, int i,
              int j, int currentVisit, int player)
 {
-  if(i < 0 || j < 0 || i >= mat->cols || j >= mat->lines || player != 
+  if(i < 0 || j < 0 || i >= mat->cols || j >= mat->lines || player !=
   mat->data[j * mat->cols + i] || cell->data[j * mat->cols + i] == currentVisit)
     return 0;
   cell->data[j * mat->cols + i] = currentVisit;
@@ -21,7 +21,7 @@ int testpath(struct matrix *mat, struct matrix *cell, int i,
           testpath(mat, cell, i + 1, j - 1, currentVisit, player));
 }
 
-int is_Finished(struct matrix *mat, struct matrix *cell, 
+int is_Finished(struct matrix *mat, struct matrix *cell,
                 int currentVisit, int player)
 {
   int i = 0;
@@ -47,19 +47,22 @@ double MonteCarlo(struct matrix *mat, struct matrix *Cell,
                   int cpt, int currentVisit, int player, double max_game)
 {
   double game_win = 0;
+  int r, curr;
+  struct vector *freePos;
+  struct matrix *cell;
 
   for(int i = 0; i < max_game; ++i)
   {
-    struct vector *freePos = getFreePos(mat, cpt);
-    struct matrix *cell = cloneMat(Cell);
-    int curr = currentVisit;
+    freePos = getFreePos(mat, cpt);
+    cell = cloneMat(Cell);
+    curr = currentVisit;
     srand(time(NULL));
     while(freePos->size > 0)
     {
       if(player == 3)
         player = 1;
-  
-      int r = rand() % freePos->size;
+
+      r = rand() % freePos->size;
 //      printf("r value :%d\n",r);
 //      print_vect(freePos);
       mat->data[freePos->data[r]->t1 * mat->cols + freePos->data[r]->t2] = player;

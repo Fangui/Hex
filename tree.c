@@ -21,8 +21,8 @@ void printTree(struct tree *tree)
 {
   for(int i = 0; i < tree->nbChildren; ++i)
   {
-    printf("fils n %d gain= %lf t1 = %d t2 = %d\n", i, 
-    tree->children[i]->value, tree->children[i]->t1, 
+    printf("fils n %d gain= %lf t1 = %d t2 = %d\n", i,
+    tree->children[i]->value, tree->children[i]->t1,
     tree->children[i]->t2);
 
     printTree(tree->children[i]);
